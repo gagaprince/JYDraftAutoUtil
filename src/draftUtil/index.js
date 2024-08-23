@@ -289,56 +289,6 @@ const newMaterialsTrack = (type, trackResouceData) => {
 
 }
 
-const newSegmentData = (trackResouceData, videoItemData, timerange) => {
-    const segmentItemData = giveMeSegmentItemFromTpl();
-    segmentItemData.id = uuid();
-    segmentItemData['material_id'] = videoItemData.id;
-    segmentItemData['extra_material_refs'].push(trackResouceData.speedData.id);
-    segmentItemData['extra_material_refs'].push(trackResouceData.canvasData.id);
-    segmentItemData['extra_material_refs'].push(trackResouceData.soundChannelMappingData.id);
-    segmentItemData['extra_material_refs'].push(trackResouceData.vocalSeparationData.id);
-    segmentItemData['target_timerange'] = timerange
-    return segmentItemData;
-}
-
-
-/**
- * 
- * @param {*} draft 草稿对象
- * @param {*} options 轨道参数
- * {
- *  trackData 可以为空 如果为空会新建一个轨道 如果传了 则会将图片资源添加到传入的轨道上
- *  imgFilePath 资源图片路径
- *  imgName 资源图片的名称
- *  timerange 资源展示的时间段 这个最好传 如果不传默认是5s
- * }
- * @returns 
- */
-export const addImageToTrack = (draft, { trackData, imgFilePath, imgName, timerange = { start: 0, duration: 5 } }) => {
-    // 先引入资源
-    const resFilePath = importImage(draft, imgFilePath, imgName);
-    const videoItemData = addImageToMaterials(draft, resFilePath);
-    // 添加轨道资源
-    let trackDataIn = trackData;
-    if (!trackDataIn) {
-        // 资源添加到Materials
-        const trackResouceData = newTrackResource(draft);
-        trackDataIn = newMaterialsTrack('video', trackResouceData);
-    }
-    const segmentData = newSegmentData(trackDataIn.trackResouceData, videoItemData, timerange);
-    trackDataIn.trackItemData.segments.push(segmentData);
-    draft.draftInfo.tracks.push(trackDataIn.trackItemData);
-    return trackDataIn;
-}
-
-/**
- * 
- * @param {*} draft 草稿对象
- * @param {*} duration 设置最后影片时长 应该是多个轨道时长的最大值，这里暂时直接从外部设置
- */
-export const setDraftDuration = (draft, duration) => {
-    draft.draftInfo.duration = duration * 1000000;
-}
 
 /**
  * 
@@ -387,6 +337,78 @@ const setKeyFrameListByType = (commonKeyframeItemMap, propertyType, keyFrameSimp
     const segmentItemCommonKeyFramesTypeData = commonKeyframeItemMap[propertyType];
     const keyframeList = keyFrameSimpleDataList.map(item => newKeyframeListItem(item))
     segmentItemCommonKeyFramesTypeData['keyframe_list'] = keyframeList;
+}
+
+
+const newSegmentData = (trackResouceData, videoItemData, timerange) => {
+    const segmentItemData = giveMeSegmentItemFromTpl();
+    segmentItemData.id = uuid();
+    segmentItemData['material_id'] = videoItemData.id;
+    segmentItemData['extra_material_refs'].push(trackResouceData.speedData.id);
+    segmentItemData['extra_material_refs'].push(trackResouceData.canvasData.id);
+    segmentItemData['extra_material_refs'].push(trackResouceData.soundChannelMappingData.id);
+    segmentItemData['extra_material_refs'].push(trackResouceData.vocalSeparationData.id);
+    segmentItemData['target_timerange'] = timerange
+    return segmentItemData;
+}
+
+
+
+
+/**
+ * 
+ * @param {*} draft 草稿对象
+ * @param {*} options 轨道参数
+ * {
+ *  trackData 可以为空 如果为空会新建一个轨道 如果传了 则会将图片资源添加到传入的轨道上
+ *  imgFilePath 资源图片路径
+ *  imgName 资源图片的名称
+ *  timerange 资源展示的时间段 这个最好传 如果不传默认是5s
+ *  keyFrameInfo 关键帧信息
+ *  [
+ *      {
+ *          timeOffset: 时间点,
+ *          keyframe:{
+ *              scale: 1.2, //放缩状态
+ *              rotation: 0, //旋转角度
+ *              x:0, //原始位置坐标x
+ *              y:0  //原始位置坐标y
+ *          }
+ *      }
+ *  ]
+ * }
+ * @returns 
+ */
+export const addImageToTrack = (draft, {
+    trackData,
+    imgFilePath,
+    imgName,
+    timerange = { start: 0, duration: 5 },
+    keyFrameInfo = {},
+}) => {
+    // 先引入资源
+    const resFilePath = importImage(draft, imgFilePath, imgName);
+    const videoItemData = addImageToMaterials(draft, resFilePath);
+    // 添加轨道资源
+    let trackDataIn = trackData;
+    if (!trackDataIn) {
+        // 资源添加到Materials
+        const trackResouceData = newTrackResource(draft);
+        trackDataIn = newMaterialsTrack('video', trackResouceData);
+    }
+    const segmentData = newSegmentData(trackDataIn.trackResouceData, videoItemData, timerange);
+    trackDataIn.trackItemData.segments.push(segmentData);
+    draft.draftInfo.tracks.push(trackDataIn.trackItemData);
+    return trackDataIn;
+}
+
+/**
+ * 
+ * @param {*} draft 草稿对象
+ * @param {*} duration 设置最后影片时长 应该是多个轨道时长的最大值，这里暂时直接从外部设置
+ */
+export const setDraftDuration = (draft, duration) => {
+    draft.draftInfo.duration = duration * 1000000;
 }
 
 
