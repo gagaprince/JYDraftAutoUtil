@@ -8,4 +8,5 @@ export const basicInfo = {
     videoItemTpl: path.join(currentDirectory, 'src', '/template/video_item.json'),
     trackItemTpl: path.join(currentDirectory, 'src', '/template/track_item.json'),
     segmentItemTpl: path.join(currentDirectory, 'src', '/template/segment_item.json'),
+    segmentItemCommonKeyFramesTpl: path.join(currentDirectory, 'src', '/template/common_keyframes.json'),
 }

@@ -41,6 +41,13 @@ const giveMeSegmentItemFromTpl = () => {
     return JSON.parse(JSON.stringify(_segmentItemTpl));
 }
 
+let _segmentItemCommonKeyFramesTpl;
+const giveMeSegmentItemCommonKeyFramesFromTpl = () => {
+    if (!_segmentItemCommonKeyFramesTpl) {
+        _segmentItemCommonKeyFramesTpl = JSON.parse(fs.readFileSync(basicInfo.segmentItemCommonKeyFramesTpl, 'utf-8'));
+    }
+    return JSON.parse(JSON.stringify(_segmentItemCommonKeyFramesTpl));
+}
 
 
 const uuid = () => {
@@ -331,6 +338,55 @@ export const addImageToTrack = (draft, { trackData, imgFilePath, imgName, timera
  */
 export const setDraftDuration = (draft, duration) => {
     draft.draftInfo.duration = duration * 1000000;
+}
+
+/**
+ * 
+ * @returns 返回一个map 用来方便设置每种类型的关键帧 同时返回commonKeyframeItemList 用来更新segmentItemCommonKeyFrames
+ */
+const newSegmentCommonKeyframesData = () => {
+    const segmentItemCommonKeyFramesData = giveMeSegmentItemCommonKeyFramesFromTpl();
+    const commonKeyframeItemMap = {};
+    segmentItemCommonKeyFramesData.forEach(item => {
+        item.id = uuid();
+        commonKeyframeItemMap[item.property_type] = item;
+    });
+    return { segmentItemCommonKeyFramesData, commonKeyframeItemMap };
+}
+
+const newKeyframeListItem = (keyFrameSimpleData) => {
+    const { timeOffset = 0, values = [0] } = keyFrameSimpleData;
+    return {
+        "curveType": "Line",
+        "graphID": "",
+        "id": uuid(),
+        "left_control": {
+            "x": 0.0,
+            "y": 0.0
+        },
+        "right_control": {
+            "x": 0.0,
+            "y": 0.0
+        },
+        "time_offset": timeOffset,
+        values,
+    }
+}
+
+/**
+ * 
+ * @param {*} commonKeyframeItemMap newSegmentCommonKeyframesData返回的map
+ * @param {*} propertyType 枚举值 KFTypeScaleX KFTypeRotation KFTypePositionX KFTypePositionY
+ * @param {*} keyFrameSimpleDataList 
+ * {
+ *  time_offset: 时间点,
+ *  value: 值, 时间点对应的值
+ * }[]
+ */
+const setKeyFrameListByType = (commonKeyframeItemMap, propertyType, keyFrameSimpleDataList) => {
+    const segmentItemCommonKeyFramesTypeData = commonKeyframeItemMap[propertyType];
+    const keyframeList = keyFrameSimpleDataList.map(item => newKeyframeListItem(item))
+    segmentItemCommonKeyFramesTypeData['keyframe_list'] = keyframeList;
 }
 
 
