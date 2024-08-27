@@ -339,8 +339,22 @@ const setKeyFrameListByType = (commonKeyframeItemMap, propertyType, keyFrameSimp
     segmentItemCommonKeyFramesTypeData['keyframe_list'] = keyframeList;
 }
 
-
-const newSegmentData = (trackResouceData, videoItemData, timerange) => {
+/**
+ * 
+*  keyFrameInfo 关键帧信息
+ *  [
+ *      {
+ *          timeOffset: 时间点,
+ *          keyframe:{
+ *              scale: 1.2, //放缩状态
+ *              rotation: 0, //旋转角度
+ *              x:0, //原始位置坐标x
+ *              y:0  //原始位置坐标y
+ *          }
+ *      }
+ *  ]
+ */
+const newSegmentData = (trackResouceData, videoItemData, timerange, keyFrameInfo = []) => {
     const segmentItemData = giveMeSegmentItemFromTpl();
     segmentItemData.id = uuid();
     segmentItemData['material_id'] = videoItemData.id;
@@ -348,7 +362,30 @@ const newSegmentData = (trackResouceData, videoItemData, timerange) => {
     segmentItemData['extra_material_refs'].push(trackResouceData.canvasData.id);
     segmentItemData['extra_material_refs'].push(trackResouceData.soundChannelMappingData.id);
     segmentItemData['extra_material_refs'].push(trackResouceData.vocalSeparationData.id);
-    segmentItemData['target_timerange'] = timerange
+    segmentItemData['target_timerange'] = timerange;
+
+    //处理关键帧信息
+    if (keyFrameInfo && keyFrameInfo.length) {
+        const { segmentItemCommonKeyFramesData, commonKeyframeItemMap } = newSegmentCommonKeyframesData();
+        const KFTypeScaleXDataList = [];
+        const KFTypePositionXList = [];
+        const KFTypePositionYList = [];
+        const KFTypeRotationList = [];
+        keyFrameInfo.forEach(keyFrameInfoItem => {
+            const { timeOffset, keyframe } = keyFrameInfoItem;
+            const { scale = 1, rotation = 0, x = 0, y = 0 } = keyframe;
+            KFTypeScaleXDataList.push({ timeOffset, values: [scale] });
+            KFTypePositionXList.push({ timeOffset, values: [x] });
+            KFTypePositionYList.push({ timeOffset, values: [y] });
+            KFTypeRotationList.push({ timeOffset, values: [rotation] });
+        });
+        setKeyFrameListByType(commonKeyframeItemMap, 'KFTypeScaleX', KFTypeScaleXDataList);
+        setKeyFrameListByType(commonKeyframeItemMap, 'KFTypePositionX', KFTypePositionXList);
+        setKeyFrameListByType(commonKeyframeItemMap, 'KFTypePositionY', KFTypePositionYList);
+        setKeyFrameListByType(commonKeyframeItemMap, 'KFTypeRotation', KFTypeRotationList);
+        segmentItemData['common_keyframes'] = segmentItemCommonKeyFramesData;
+    }
+
     return segmentItemData;
 }
 
@@ -384,7 +421,7 @@ export const addImageToTrack = (draft, {
     imgFilePath,
     imgName,
     timerange = { start: 0, duration: 5 },
-    keyFrameInfo = {},
+    keyFrameInfo = [],
 }) => {
     // 先引入资源
     const resFilePath = importImage(draft, imgFilePath, imgName);
@@ -396,7 +433,7 @@ export const addImageToTrack = (draft, {
         const trackResouceData = newTrackResource(draft);
         trackDataIn = newMaterialsTrack('video', trackResouceData);
     }
-    const segmentData = newSegmentData(trackDataIn.trackResouceData, videoItemData, timerange);
+    const segmentData = newSegmentData(trackDataIn.trackResouceData, videoItemData, timerange, keyFrameInfo);
     trackDataIn.trackItemData.segments.push(segmentData);
     draft.draftInfo.tracks.push(trackDataIn.trackItemData);
     return trackDataIn;

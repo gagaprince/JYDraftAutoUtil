@@ -19,7 +19,21 @@ export const init = () => {
         timerange: {
             start: 0,
             duration: 2000000,
-        }
+        },
+        keyFrameInfo: [
+            {
+                timeOffset: 0,
+                keyframe: {
+                    scale: 1.2,
+                }
+            },
+            {
+                timeOffset: 1900000,
+                keyframe: {
+                    scale: 1.5,
+                }
+            }
+        ],
     });
     addImageToTrack(draft, {
         trackData,
@@ -28,7 +42,21 @@ export const init = () => {
         timerange: {
             start: 2000000,
             duration: 3000000,
-        }
+        },
+        keyFrameInfo: [
+            {
+                timeOffset: 0,
+                keyframe: {
+                    scale: 1.2,
+                }
+            },
+            {
+                timeOffset: 2900000,
+                keyframe: {
+                    scale: 1.5,
+                }
+            }
+        ],
     });
 
     saveDraft(draft);
